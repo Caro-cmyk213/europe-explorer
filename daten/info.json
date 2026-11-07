@@ -1,0 +1,39 @@
+{
+  "zeitraum": [
+    2000,
+    2025
+  ],
+  "regionen_jahre": [
+    2000,
+    2024
+  ],
+  "krisen": {
+    "Finanzkrise": [
+      2008,
+      2009
+    ],
+    "Eurokrise": [
+      2010,
+      2015
+    ],
+    "COVID-19": [
+      2020,
+      2021
+    ]
+  },
+  "median_fue": 1.2784615384615385,
+  "median_wachstum": 2.4,
+  "gruppen": [
+    "1: Innovation hoch · Wachstum hoch",
+    "2: Innovation niedrig · Wachstum hoch",
+    "3: Innovation hoch · Wachstum niedrig",
+    "4: Innovation niedrig · Wachstum niedrig"
+  ],
+  "region_farben": {
+    "Nordeuropa": "#1f77b4",
+    "Westeuropa": "#2ca02c",
+    "Südeuropa": "#ff7f0e",
+    "Osteuropa": "#d62728"
+  },
+  "stand": "07.11.2026"
+}

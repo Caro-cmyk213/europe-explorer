@@ -3,10 +3,6 @@
     2000,
     2025
   ],
-  "regionen_jahre": [
-    2000,
-    2024
-  ],
   "krisen": {
     "Finanzkrise": [
       2008,
@@ -35,5 +31,5 @@
     "Südeuropa": "#ff7f0e",
     "Osteuropa": "#d62728"
   },
-  "stand": "07.11.2026"
+  "stand": "08.11.2026"
 }

@@ -1,6 +1,6 @@
 
-
 ### Teil 1: Pakete importieren ###############################################
+# Die App läuft als eigenes Programm und kennt die Imports des Notebooks nicht.
 import json
 import os
 
@@ -8,13 +8,14 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+
 ### Teil 2: Funktionen, die von den Seiten verwendet werden ##################
 ORDNER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'daten')   
 
 
 @st.cache_data                    
 def daten_laden():
-    ''' Lädt alle Dateien, die das Notebook in 3.4a exportiert hat. '''
+    ''' Lädt alle Dateien, die das Notebook in 3.5.1 exportiert hat. '''
     d = {name: pd.read_csv(f'{ORDNER}/{name}.csv') for name in ['wirtschaft', 'innovation_jahr', 'laender']}
     with open(f'{ORDNER}/geo_laender.geojson', encoding='utf-8') as f:
         d['geo_laender'] = json.load(f)
@@ -30,8 +31,8 @@ def daten_laden():
 
 
 def plot_karte(df, spalte, titel, skala):
-    ''' Europakarte der Länder (wie europakarte() im Notebook, Abschnitt 3.2b). '''
-    fig = px.choropleth_map(df, geojson=d['geo_laender'], locations='country_code',            # [EXTERN]
+    ''' Europakarte der Länder (wie europakarte() im Notebook, Abschnitt 3.2.2). '''
+    fig = px.choropleth_map(df, geojson=d['geo_laender'], locations='country_code',            
                             featureidkey='properties.CNTR_ID', color=spalte, hover_name='name_de',
                             color_continuous_scale=skala, zoom=2.6, center={'lat': 54, 'lon': 15},
                             opacity=0.8, map_style='carto-positron', title=titel, labels={spalte: ''},
@@ -41,7 +42,7 @@ def plot_karte(df, spalte, titel, skala):
 
 
 def plot_zeitreihe(df, spalte, titel, krisen):
-    ''' Liniendiagramm je Land mit markierten Krisenphasen (wie plot_multiple_closing_data). '''
+    ''' Liniendiagramm je Land mit markierten Krisenphasen. '''
     fig = px.line(df, x='year', y=spalte, color='name_de', markers=True, title=titel,
                   labels={'year': 'Jahr', spalte: '', 'name_de': 'Land'})
     for krise, (von, bis) in krisen.items():
@@ -52,7 +53,7 @@ def plot_zeitreihe(df, spalte, titel, krisen):
 
 
 def plot_rang(df, titel):
-    ''' Rang eines Landes je Jahr, Rang 1 oben (wie in Abschnitt 3.3d). '''
+    ''' Rang eines Landes je Jahr, Rang 1 oben (wie in Abschnitt 3.3.4). '''
     fig = px.line(df, x='year', y='rang', color='kennzahl', markers=True, title=titel,
                   labels={'year': 'Jahr', 'rang': 'Rang (1 = bester)', 'kennzahl': ''})
     fig.update_yaxes(autorange='reversed')
@@ -61,7 +62,7 @@ def plot_rang(df, titel):
 
 
 def plot_ranking(df, spalte, titel, farben):
-    ''' Liegendes Balkendiagramm als Rangliste, Farbe = UN-Region (wie plot_volume_data, nur liegend). '''
+    ''' Liegendes Balkendiagramm als Rangliste, Farbe = UN-Region. '''
     fig = px.bar(df, x=spalte, y='name_de', color='region_un', orientation='h', title=titel,
                  color_discrete_map=farben, labels={spalte: 'Zukunfts-Score (0–100)', 'name_de': '',
                                                      'region_un': 'UN-Region'})
@@ -78,22 +79,23 @@ def seite_uebersicht():
     von, bis = info['zeitraum']
     st.title('🌍 Europe Explorer')
     st.subheader('Europa im Überblick: Wirtschaft und Innovation')
-    st.markdown(f"Durchschnittswerte {von}–{bis} für {len(ueb)} EU-Länder. Wirtschaftsdaten aus Teil 1, "
-                f"Innovationsdaten aus Teil 2, Karte und Gruppen aus Teil 3. Quelle: Eurostat, Stand {info['stand']}.")
+    st.markdown(f"Durchschnittswerte {von}–{bis} (Patente 2000–2017) für {len(ueb)} EU-Länder. "
+                f"Wirtschaftsdaten aus Teil 1, Innovationsdaten aus Teil 2, Karte und Gruppen aus Teil 3. "
+                f"Quelle: Eurostat, Stand {info['stand']}.")
 
     # a) Karte der gewählten Kennzahl
     kennzahlen = {'Ø reales BIP-Wachstum (%)': ('wachstum', 'RdYlGn'),
                   'Ø Inflation (%)': ('inflation_hicp_pct', 'OrRd'),
                   'Ø Arbeitslosenquote (%)': ('unemployment_pct', 'OrRd'),
                   'Ø FuE-Ausgaben (% des BIP)': ('fue', 'YlGnBu'),
-                  'Ø Patente je Mio. Einwohner': ('patente', 'YlGnBu')}
+                  'Ø Patente je Mio. Einwohner (2000–2017)': ('patente', 'YlGnBu')}
     name = st.selectbox('Kennzahl auswählen', list(kennzahlen))
     spalte, skala = kennzahlen[name]
-    plot_karte(ueb, spalte, f'{name}, {von}–{bis}', skala)
+    plot_karte(ueb, spalte, name if spalte == 'patente' else f'{name}, {von}–{bis}', skala)
     st.markdown('**Muster:** Innovation ist im Norden und Westen am höchsten, Wachstum im Osten. '
                 'Die Länder mit den höchsten Forschungsausgaben wachsen meist unterdurchschnittlich.')
 
-    # b) Länder suchen, wie auf der Seite "Symbol Search" in der Vorlesung
+    # b) Länder über ein Suchfeld filtern
     st.subheader('Länder suchen')
     suche = st.text_input('Ländername eingeben (leer = alle Länder)', value='').lower()
     treffer = ueb[ueb['name_de'].str.lower().str.contains(suche)]
@@ -111,14 +113,14 @@ def seite_deutschland():
     land, w, j, info = d['laender'], d['wirtschaft'], d['innovation_jahr'], d['info']
     st.subheader('🇩🇪 Deutschland im Vergleich')
 
-    # a) Hauptland wählen (Deutschland voreingestellt), wie auf der Seite "Ticker Data" in der Vorlesung
+    # a) Hauptland wählen (Deutschland voreingestellt)
     namen = sorted(land['name_de'].tolist())
     name = st.selectbox('Land auswählen', namen, index=namen.index('Deutschland'))
     z = land[land['name_de'] == name].iloc[0]
     st.markdown(f"**{name}** · Ø FuE-Ausgaben **{z['fue']:.2f} %** des BIP (Rang {int(z['rang_fue'])}) · "
                 f"Ø BIP-Wachstum **{z['wachstum']:.2f} %** (Rang {int(z['rang_wachstum'])}) · {z['gruppe']}")
 
-    # b) Vergleichsländer ankreuzen, wie auf der Seite "Compare" in der Vorlesung
+    # b) Vergleichsländer per Häkchen auswählen
     st.markdown('**Vergleichsländer auswählen:**')
     auswahl = land.loc[land['name_de'] != name, ['name_de', 'region_un']].sort_values('name_de').reset_index(drop=True)
     auswahl['Vergleich'] = auswahl['name_de'].isin(['Frankreich', 'Polen', 'Schweden'])
@@ -164,7 +166,7 @@ def seite_score():
         st.markdown('*Mindestens ein Gewicht muss größer als 0 sein.*')
         return
 
-    # Berechnung wie in Abschnitt 3.5a: Min-Max-Skalierung, gewichteter Mittelwert
+    # Berechnung wie in Abschnitt 3.4: Min-Max-Skalierung, gewichteter Mittelwert
     teile = pd.DataFrame({k: (land[k] - land[k].min()) / (land[k].max() - land[k].min()) for k in gewichte})
     g = pd.Series(gewichte, dtype=float)
     score = land[['name_de', 'region_un']].copy()
